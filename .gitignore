@@ -20,12 +20,21 @@ next-env.d.ts
 
 data
 *.db
-*.db-journal
 *.sqlite
 *.sqlite3
+
+# SQLite sidecar files. These have no extension, so `*.db` does not match them,
+# and they turn up in the project root whenever a local database is open.
+db-wal
+db-shm
+*-wal
+*-shm
+*-journal
 
 # QA output from scripts/audit.mjs and scripts/shoot.mjs
 .shots
 
 .vscode
 .idea
+
+.vercel

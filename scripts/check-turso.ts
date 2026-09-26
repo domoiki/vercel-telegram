@@ -1,13 +1,23 @@
 /**
  * One-off connectivity check for the production Turso database.
- * Run with TURSO_DATABASE_URL and TURSO_AUTH_TOKEN set in the environment.
+ *
+ *   TURSO_DATABASE_URL=libsql://… TURSO_AUTH_TOKEN=… \
+ *     node --import tsx --import ./scripts/register-stub.mjs scripts/check-turso.ts
+ *
+ * Verifies the connection, reports the tables it can see, and proves the token
+ * has write scope — then cleans up after itself.
  */
 import { createClient } from "@libsql/client";
 
-const url = process.env.TURSO_DATABASE_URL;
-const authToken = process.env.TURSO_AUTH_TOKEN;
-
 async function main() {
+  const url = process.env.TURSO_DATABASE_URL;
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+
+  if (!url || !authToken) {
+    console.error("  Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN first.");
+    process.exit(1);
+  }
+
   const client = createClient({ url, authToken });
 
   const ping = await client.execute("select 1 as ok");
@@ -23,12 +33,9 @@ async function main() {
   await client.execute("insert into _deploy_probe (id) values (1)");
   await client.execute("drop table _deploy_probe");
   console.log("  hak tulis: OK");
-
-  const groups = await client.execute("select count(*) as c from sqlite_master");
-  console.log("  objek total:", groups.rows[0]?.c);
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   console.error("  GAGAL:", error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
