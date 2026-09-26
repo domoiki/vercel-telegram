@@ -1,0 +1,292 @@
+@import "tailwindcss";
+
+/* Class-based dark mode driven by next-themes. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===========================================================================
+   Signal Console — design tokens
+
+   A message gateway is a switchboard: a signal arrives, crosses a chain of
+   processors, and either lands or breaks somewhere. The palette is built from
+   a warm graphite panel and a single brass indicator colour, so "live" reads
+   as a lit lamp rather than a glow. Status hues are reserved strictly for
+   status; brass is reserved strictly for the product's own voice.
+   =========================================================================== */
+
+@theme {
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", "Cascadia Code", monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-control: 0.375rem;
+  --radius-panel: 0.5rem;
+  --radius-dialog: 0.75rem;
+
+  --ease-console: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---------- light: cool instrument paper ---------- */
+:root {
+  color-scheme: light;
+
+  --bg: #f4f5f7;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #fafafb;
+  --surface-3: #eff1f3;
+  --surface-inset: #f1f2f5;
+
+  --line: rgba(16, 18, 20, 0.1);
+  --line-strong: rgba(16, 18, 20, 0.17);
+  --line-faint: rgba(16, 18, 20, 0.06);
+
+  --fg: #14161a;
+  --fg-muted: #565e68;
+  --fg-subtle: #676e77;
+
+  --accent: #8a5f0c;
+  --accent-hover: #744f06;
+  --accent-fg: #fffdf7;
+  --accent-line: rgba(138, 95, 12, 0.28);
+  --accent-wash: rgba(169, 121, 26, 0.1);
+
+  --success: #17734a;
+  --success-wash: rgba(23, 115, 74, 0.1);
+  --warning: #a8482a;
+  --warning-wash: rgba(168, 72, 42, 0.1);
+  --error: #ab2c22;
+  --error-wash: rgba(171, 44, 34, 0.1);
+  --info: #22609c;
+  --info-wash: rgba(34, 96, 156, 0.1);
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-line: rgba(16, 18, 20, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+
+  --shadow-panel: 0 1px 2px rgba(16, 18, 20, 0.05);
+  --shadow-pop: 0 12px 32px -12px rgba(16, 18, 20, 0.24), 0 2px 6px rgba(16, 18, 20, 0.06);
+  --shadow-trace: 0 0 0 1px var(--line-faint);
+
+  --chart-grid: rgba(16, 18, 20, 0.07);
+  --chart-axis: rgba(16, 18, 20, 0.16);
+
+  --selection: rgba(169, 121, 26, 0.2);
+}
+
+/* ---------- dark: warm graphite console ---------- */
+.dark {
+  color-scheme: dark;
+
+  --bg: #0b0b0c;
+  --bg-elevated: #0e0e10;
+  --surface: #121214;
+  --surface-2: #17171a;
+  --surface-3: #1d1d21;
+  --surface-inset: #0f0f11;
+
+  --line: rgba(255, 255, 255, 0.075);
+  --line-strong: rgba(255, 255, 255, 0.135);
+  --line-faint: rgba(255, 255, 255, 0.045);
+
+  --fg: #ececef;
+  --fg-muted: #a8a8b1;
+  --fg-subtle: #868690;
+
+  --accent: #d9a441;
+  --accent-hover: #e6b558;
+  --accent-fg: #17120a;
+  --accent-line: rgba(217, 164, 65, 0.3);
+  --accent-wash: rgba(217, 164, 65, 0.11);
+
+  --success: #45b37c;
+  --success-wash: rgba(69, 179, 124, 0.13);
+  --warning: #d2694a;
+  --warning-wash: rgba(210, 105, 74, 0.13);
+  --error: #e26056;
+  --error-wash: rgba(226, 96, 86, 0.13);
+  --info: #5a9bd4;
+  --info-wash: rgba(90, 155, 212, 0.13);
+
+  --glass-bg: rgba(20, 20, 23, 0.66);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 16px 40px -16px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-trace: 0 0 0 1px var(--line-faint);
+
+  --chart-grid: rgba(255, 255, 255, 0.055);
+  --chart-axis: rgba(255, 255, 255, 0.14);
+
+  --selection: rgba(217, 164, 65, 0.24);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-inset: var(--surface-inset);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-chart-axis: var(--chart-axis);
+}
+
+/* ========================= base ========================= */
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-feature-settings: "cv05" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--selection);
+}
+
+/* Numbers in tables and metrics must line up column-wise. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ========================= primitives ========================= */
+
+@utility panel {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+@utility glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* A single hairline highlight along the top edge, like a milled panel. */
+@utility glass-lit {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--glass-highlight) 22%,
+      var(--glass-highlight) 78%,
+      transparent
+    );
+    pointer-events: none;
+  }
+}
+
+@utility focus-ring {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@utility label-xs {
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 550;
+  letter-spacing: 0.02em;
+  color: var(--fg-muted);
+}
+
+/* ========================= scrollbars ========================= */
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--fg-subtle);
+    background-clip: content-box;
+  }
+}
+
+/* ========================= a11y ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  background: var(--accent);
+  color: var(--accent-fg);
+  padding: 8px 14px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  transition: top 140ms var(--ease-console);
+}
+.skip-link:focus {
+  top: 12px;
+}
