@@ -125,13 +125,25 @@ function lowerKeys(input: Record<string, string>): Record<string, string> {
 }
 
 type OpenAiResponse = {
-  choices?: Array<{ message?: { content?: string | null }; text?: string; finish_reason?: string }>;
+  choices?: Array<{
+    message?: { content?: string | null; reasoning_content?: string | null };
+    text?: string;
+    finish_reason?: string;
+  }>;
   model?: string;
   usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
   content?: Array<{ type?: string; text?: string }>;
 };
 
-function readOpenAiText(body: unknown): string {
+/**
+ * @param allowReasoning - Reasoning models (Nemotron 3, DeepSeek-R1, QwQ, the
+ * o-series) return their visible answer in `content` and their chain of thought
+ * in `reasoning_content`. A reply path must never send the reasoning to
+ * Telegram, so this stays off by default. The connectivity test turns it on,
+ * because a provider that answered *at all* is connected, even when the budget
+ * was too small for it to finish thinking out loud.
+ */
+function readOpenAiText(body: unknown, allowReasoning = false): string {
   const b = body as OpenAiResponse | null;
   const choice = b?.choices?.[0];
   const content = choice?.message?.content ?? choice?.text;
@@ -149,6 +161,10 @@ function readOpenAiText(body: unknown): string {
       .join("")
       .trim();
     if (joined) return joined;
+  }
+  if (allowReasoning) {
+    const reasoning = choice?.message?.reasoning_content;
+    if (typeof reasoning === "string" && reasoning.trim()) return reasoning.trim();
   }
   return "";
 }
@@ -207,8 +223,16 @@ export const openAiCompatibleAdapter: ProviderAdapter = {
 
     const text = readOpenAiText(response.body);
     if (!text) {
-      throw new ProviderError("Provider returned an empty completion", {
-        category: "unknown",
+      // Worth saying what to do: a reasoning model that exhausted its budget
+      // before producing a visible answer is the usual cause, and the fix is a
+      // bigger token budget on this provider rather than a retry.
+      const finish = (response.body as OpenAiResponse | null)?.choices?.[0]?.finish_reason;
+      const detail =
+        finish === "length"
+          ? "Provider returned an empty completion (ran out of tokens while reasoning) — raise this provider's max tokens"
+          : "Provider returned an empty completion";
+      throw new ProviderError(detail, {
+        category: finish === "length" ? "config" : "unknown",
         httpStatus: response.status,
         fallbackWorthy: true,
       });
@@ -240,7 +264,12 @@ export const openAiCompatibleAdapter: ProviderAdapter = {
           body: JSON.stringify({
             model,
             messages: TEST_PROMPT,
-            max_tokens: 16,
+            // Reasoning models spend this budget thinking before they answer.
+            // The old value of 16 left no room at all: the model returned
+            // `finish_reason: "length"` with only a fragment of its own
+            // reasoning, which reads as a broken connection rather than a
+            // working one. 256 is enough for a one-word answer to land.
+            max_tokens: 256,
             temperature: 0,
             stream: false,
           }),
@@ -268,7 +297,9 @@ export const openAiCompatibleAdapter: ProviderAdapter = {
         errorMessage: null,
         errorCategory: null,
         model: (response.body as OpenAiResponse | null)?.model ?? model,
-        sample: readOpenAiText(response.body) || null,
+        // A reasoning model that ran out of budget still proves the endpoint,
+        // the key and the model name are all correct.
+        sample: readOpenAiText(response.body, true) || null,
       };
     } catch (error) {
       const providerError =
