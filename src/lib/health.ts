@@ -32,6 +32,46 @@ export type SystemHealth = {
 };
 
 /**
+ * Telegram's own `last_error_message` is the ground truth, but it conflates two
+ * very different situations:
+ *
+ *   - The delivery itself failed — TLS, DNS, connection refused, a 4xx from a
+ *     proxy. The integration is broken and no update can get through.
+ *   - Telegram reached us and we answered 5xx. Delivery worked; something
+ *     downstream failed — almost always the provider chain.
+ *
+ * Only the first is a Telegram problem. Reporting the second as "Problem" here
+ * sends people to debug the wrong card, so it is downgraded to a warning that
+ * points at where the failure actually lives.
+ */
+function classifyWebhookError(message: string): { state: HealthState; detail: string } {
+  // Telegram reports a non-2xx from the endpoint as "Wrong response from the
+  // webhook: <status>". That phrasing only ever appears once it has reached us.
+  const reachedUs = /wrong response from the webhook/i.test(message);
+  const status = /wrong response from the webhook:\s*(\d{3})/i.exec(message)?.[1];
+
+  if (reachedUs) {
+    const code = status ? Number(status) : 0;
+    if (code >= 500) {
+      return {
+        state: "warn",
+        detail: `Webhook reached Telegram but returned HTTP ${code} — check the provider chain`,
+      };
+    }
+    if (code >= 400) {
+      return {
+        state: "error",
+        detail: `Webhook rejected with HTTP ${code}`,
+      };
+    }
+    return { state: "warn", detail: message };
+  }
+
+  // Everything else is a delivery-layer problem: the webhook is unusable.
+  return { state: "error", detail: message };
+}
+
+/**
  * A single round trip to the database plus a read of the config tables.
  * Cheap enough to run on every page render; never throws.
  */
@@ -82,8 +122,14 @@ export async function getSystemHealth(): Promise<SystemHealth> {
       detail = `${slots} of 3 chat slots filled`;
     }
     if (config.webhookLastError) {
-      state = "error";
-      detail = config.webhookLastError;
+      const classified = classifyWebhookError(config.webhookLastError);
+      // A delivery failure always wins. A downstream 5xx is only allowed to
+      // speak up when nothing more specific has been noticed, so it cannot
+      // hide a configuration problem.
+      if (classified.state === "error" || state === "ok") {
+        state = classified.state;
+        detail = classified.detail;
+      }
     }
     telegram = {
       state,
