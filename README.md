@@ -153,14 +153,25 @@ with fallback histories, and logs. It refuses to run against a remote database.
 ## Turso setup
 
 The app speaks libSQL, so Turso is the production target and a local SQLite file
-is the development one.
+is the development one. The driver is `@libsql/client`, which is Turso's
+documented Vercel integration — it speaks SQL over plain HTTP, needs no native
+dependencies, and is fully supported by Drizzle.
 
-```bash
-npm install -g @turso/cli
-turso login
-turso db create gateway          # note the URL and token
-turso db tokens create           # read/write token
-```
+**Create the database in the dashboard** — this is the reliable path and it takes
+about a minute:
+
+1. Go to [turso.tech/app](https://turso.tech/app) and **Sign in with GitHub**.
+2. **Create Database**, name it `gateway`, pick a region near you.
+3. Copy the **Database URL** shown on the database page.
+4. Open **API Tokens**, create one, and copy it the moment it is shown — it is
+   not displayed again.
+
+> If you prefer the CLI, install it with Turso's official installer
+> (`https://get.tur.so/install.sh`, or the Windows script linked from
+> [the docs](https://docs.turso.tech/cli/installation)) and then run
+> `turso auth login` and `turso db create gateway`.
+> **Do not use `npm install -g turso`** — that package ships the interactive SQL
+> shell, not the management CLI, so `turso db create` silently does nothing.
 
 Then set these in `.env.local` locally and in the Vercel project for production:
 

@@ -162,14 +162,26 @@ database-nya remote.
 ## Setup Turso
 
 Aplikasi ini bicara libSQL, jadi Turso adalah target produksi dan berkas SQLite
-lokal adalah target pengembangan.
+lokal adalah target pengembangan. Drivernya `@libsql/client`, yang merupakan
+integrasi resmi Turso untuk Vercel — SQL dikirim lewat HTTP biasa, tanpa native
+dependency, dan sepenuhnya didukung Drizzle.
 
-```bash
-npm install -g @turso/cli
-turso login
-turso db create gateway          # catat URL dan token-nya
-turso db tokens create           # token read/write
-```
+**Buat database lewat dashboard** — ini cara yang paling bisa diandalkan dan
+cukup satu menit:
+
+1. Buka [turso.tech/app](https://turso.tech/app) lalu **Sign in with GitHub**.
+2. **Create Database**, beri nama `gateway`, pilih region terdekat.
+3. Salin **Database URL** yang tampil di halaman database tersebut.
+4. Buka **API Tokens**, buat satu, lalu salin **saat itu juga** — nilainya tidak
+   ditampilkan lagi.
+
+> Kalau mau memakai CLI, pasang lewat installer resmi Turso
+> (`https://get.tur.so/install.sh`, atau skrip Windows yang ada di
+> [dokumentasinya](https://docs.turso.tech/cli/installation)), lalu jalankan
+> `turso auth login` dan `turso db create gateway`.
+> **Jangan pakai `npm install -g turso`** — paket itu berisi SQL shell
+> interaktif, bukan management CLI, sehingga `turso db create` diam-diam tidak
+> melakukan apa pun.
 
 Lalu isi ini di `.env.local` untuk lokal, dan di proyek Vercel untuk produksi:
 
